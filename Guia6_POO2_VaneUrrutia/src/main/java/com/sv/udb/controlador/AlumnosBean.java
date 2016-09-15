@@ -99,20 +99,20 @@ public class AlumnosBean implements Serializable{
     
     public void consTodo()
     {
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("POOPU");
-        EntityManager em = emf.createEntityManager();
+        RequestContext ctx= RequestContext.getCurrentInstance();
+        int codi= Integer.parseInt(FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("nombreparametro"));
+        
         try
         {
-            this.listAlum = em.createNamedQuery("Alumnos.findAll", Alumnos.class).getResultList();
+            this.objeAlum = FCDEAlum.find(codi);
+            ctx.execute("setMessage('MESS_SUCC','Atencion','Consultado')");
         }
         catch(Exception ex)
         {
-            ex.printStackTrace();
+           ctx.execute("setMessage('MESS_ERRO','Atencion','Error al consultar')");
         }
         finally
-        {
-            em.close();
-            emf.close();            
+        {            
         }
     }
 }
