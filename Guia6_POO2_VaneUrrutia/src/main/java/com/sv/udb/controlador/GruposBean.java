@@ -12,14 +12,14 @@ import javax.enterprise.context.Dependent;
  *
  * @author Laboratorio
  */
-@Named(value = "gruposAlumnsBean")
+@Named(value = "gruposBean")
 @Dependent
-public class GruposAlumnsBean {
+public class GruposBean {
 
     /**
-     * Creates a new instance of GruposAlumnsBean
+     * Creates a new instance of GruposBean
      */
-    public GruposAlumnsBean() {
+    public GruposBean() {
     }
     
 }

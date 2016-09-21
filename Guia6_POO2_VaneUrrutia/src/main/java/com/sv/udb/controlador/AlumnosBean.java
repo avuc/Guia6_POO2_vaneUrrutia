@@ -8,7 +8,9 @@ package com.sv.udb.controlador;
 import com.sv.udb.ejb.AlumnosFacadeLocal;
 import com.sv.udb.modelo.Alumnos;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.ManagedBean;
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.faces.context.FacesContext;
@@ -18,6 +20,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
+import javax.persistence.TypedQuery;
 import org.primefaces.context.RequestContext;
 
 /**
@@ -26,15 +29,13 @@ import org.primefaces.context.RequestContext;
  */
 @Named(value = "alumnosBean")
 @ViewScoped
+@ManagedBean
 public class AlumnosBean implements Serializable{
-
     @EJB
-    private AlumnosFacadeLocal FCDEAlum;
-    
-    
+    private AlumnosFacadeLocal FCDEalumnosFacade;    
     private Alumnos objeAlum;
-    private List<Alumnos> listAlum;
     private boolean guardar;
+    private List<Alumnos> alumList = null;
 
     public Alumnos getObjeAlum() {
         return objeAlum;
@@ -48,13 +49,13 @@ public class AlumnosBean implements Serializable{
         return guardar;
     }
 
-    public List<Alumnos> getListAlum() {
-        return listAlum;
+    public List<Alumnos> getAlumList() {
+        return alumList;
     }
-    
-    /**
-     * Creates a new instance of AlumnosBean
-     */
+
+    public void setAlumList(List<Alumnos> alumList) {
+        this.alumList = alumList;
+    }
     
     public AlumnosBean() {
     }
@@ -64,55 +65,90 @@ public class AlumnosBean implements Serializable{
     {
         this.objeAlum = new Alumnos();
         this.guardar = true;
-        this.consTodo();
+        ConsTodo();
     }
-    public void limpForm()
-    {
-        System.err.println("entyra");
-        this.objeAlum = new Alumnos();
-        this.guardar = true;        
-    }
-    public void guar()
-    {
-        RequestContext ctx = RequestContext.getCurrentInstance(); //Capturo el contexto de la página
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("POOPU");
-        EntityManager em = emf.createEntityManager();
-        EntityTransaction tx = em.getTransaction();
-        tx.begin();
-        try
+    
+    public void ConsTodo() {
+        try 
         {
-            FCDEAlum.create(this.objeAlum);
-            this.guardar = true;
-            ctx.execute("setMessage('MESS_SUCC','Atencion','Datos guardados')");
-        }
-        catch(Exception ex)
+            this.alumList=FCDEalumnosFacade.findAll();
+        } 
+        catch (Exception ex) 
         {
-            ctx.execute("setMessage('MESS_ERRO', 'Atención', 'Error al guardar ')");
-            tx.rollback();
-        }
-        finally
-        {
-            em.close();
-            emf.close();            
+
         }
     }
     
-    public void consTodo()
+    public void guar()
     {
-        RequestContext ctx= RequestContext.getCurrentInstance();
-        int codi= Integer.parseInt(FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("nombreparametro"));
-        
+        RequestContext ctx = RequestContext.getCurrentInstance();
         try
         {
-            this.objeAlum = FCDEAlum.find(codi);
-            ctx.execute("setMessage('MESS_SUCC','Atencion','Consultado')");
+            FCDEalumnosFacade.create(this.objeAlum);
+            this.objeAlum = new Alumnos();
+            ConsTodo();
+            ctx.execute("setMessage('MESS_SUCC', 'Alerta', 'Datos guardados exitosamente');");
         }
         catch(Exception ex)
         {
-           ctx.execute("setMessage('MESS_ERRO','Atencion','Error al consultar')");
+            ctx.execute("setMessage('MESS_ERRO', 'Atención', 'Error al guardar datos.');");
+        }
+        finally
+        {
+            
+        }
+    }
+    
+    public void modi()
+    {
+        RequestContext ctx = RequestContext.getCurrentInstance(); //Capturar el contexto
+        try
+        {
+            FCDEalumnosFacade.edit(this.objeAlum);
+            ConsTodo();
+            this.objeAlum = new Alumnos();
+            ctx.execute("setMessage('MESS_SUCC', 'Alerta', 'Registro modificado exitosamente.');");
+        }
+        catch(Exception ex)
+        {
+            ctx.execute("setMessage('MESS_ERRO', 'Atención', 'Error al modificar registro.');");
+        }
+    }
+    
+    public void elim(int codi)
+    {
+        RequestContext ctx = RequestContext.getCurrentInstance(); //Capturar el contexto
+        try
+        {
+            FCDEalumnosFacade.remove(this.objeAlum);
+            ConsTodo();
+            this.objeAlum = new Alumnos();
+            ctx.execute("setMessage('MESS_SUCC', 'Alerta', 'Registro eliminado exitosamente.');");
+        }
+        catch(Exception ex)
+        {
+            ctx.execute("setMessage('MESS_ERRO', 'Atención', 'Error al eliminar registro.');");
+        }
+    }
+    
+    public void cons(int codi)
+    {
+        RequestContext ctx = RequestContext.getCurrentInstance(); //Capturar el contexto
+        //int codi = Integer.parseInt(FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("nombreParametro"));
+        try
+        {            
+            this.objeAlum = FCDEalumnosFacade.find(codi);
+            ctx.execute("setMessage('MESS_SUCC', 'Atención', 'Consultado a " + 
+                    String.format("%s %s", this.objeAlum.getNombAlum(), this.objeAlum.getApelAlum()) + "')");
+        }
+        catch(Exception ex)
+        {            
+            ctx.execute("setMessage('MESS_ERRO', 'Atención', 'Error al consultar datos.');");
+            ex.printStackTrace();
         }
         finally
         {            
+            
         }
     }
 }
