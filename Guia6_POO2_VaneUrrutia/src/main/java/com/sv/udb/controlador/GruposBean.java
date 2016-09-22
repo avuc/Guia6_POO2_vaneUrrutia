@@ -5,21 +5,47 @@
  */
 package com.sv.udb.controlador;
 
+import com.sv.udb.ejb.GruposFacadeLocal;
+import com.sv.udb.modelo.Grupos;
+import java.io.Serializable;
+import java.util.List;
+import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
 import javax.inject.Named;
-import javax.enterprise.context.Dependent;
+import javax.faces.view.ViewScoped;
 
 /**
  *
- * @author Laboratorio
+ * @author Mauricio
  */
 @Named(value = "gruposBean")
-@Dependent
-public class GruposBean {
+@ViewScoped
+public class GruposBean implements Serializable{
 
+    @EJB
+    private GruposFacadeLocal FCDEGrupos;
+    
+    private List<Grupos> listGrup;
     /**
      * Creates a new instance of GruposBean
      */
     public GruposBean() {
     }
+    
+    @PostConstruct
+    public void init()
+    {
+        this.listGrup = FCDEGrupos.findAll();
+    }
+
+    public List<Grupos> getListGrup() {
+        return listGrup;
+    }
+
+    public void setListGrup(List<Grupos> listGrup) {
+        this.listGrup = listGrup;
+    }
+    
+    
     
 }
