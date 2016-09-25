@@ -11,21 +11,24 @@ import java.io.Serializable;
 import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
+import javax.faces.context.FacesContext;
 import javax.inject.Named;
 import javax.faces.view.ViewScoped;
+import org.primefaces.context.RequestContext;
 
 /**
  *
- * @author Mauricio
+ * @author vaness
  */
 @Named(value = "gruposBean")
 @ViewScoped
 public class GruposBean implements Serializable{
 
     @EJB
-    private GruposFacadeLocal FCDEGrupos;
-    
+    private GruposFacadeLocal FCDEGrupos;    
     private List<Grupos> listGrup;
+    private boolean guardar;
+    private Grupos objeGrup;
     /**
      * Creates a new instance of GruposBean
      */
@@ -35,7 +38,14 @@ public class GruposBean implements Serializable{
     @PostConstruct
     public void init()
     {
-        this.listGrup = FCDEGrupos.findAll();
+        this.limpForm();
+        this.consTodo();
+    }
+    
+    public void limpForm()
+    {
+        this.objeGrup = new Grupos();
+        this.guardar = true;        
     }
 
     public List<Grupos> getListGrup() {
@@ -44,6 +54,107 @@ public class GruposBean implements Serializable{
 
     public void setListGrup(List<Grupos> listGrup) {
         this.listGrup = listGrup;
+    }
+
+    public boolean isGuardar() {
+        return guardar;
+    }
+
+    public void setGuardar(boolean guardar) {
+        this.guardar = guardar;
+    }
+
+    public Grupos getObjeGrup() {
+        return objeGrup;
+    }
+
+    public void setObjeGrup(Grupos objeGrup) {
+        this.objeGrup = objeGrup;
+    }
+    
+    
+    
+    public void guar()
+    {
+        RequestContext ctx = RequestContext.getCurrentInstance(); //Capturo el contexto de la página
+        try
+        {
+            FCDEGrupos.create(this.objeGrup);
+            this.listGrup.add(this.objeGrup);
+            this.limpForm();
+            ctx.execute("setMessage('MESS_SUCC', 'Atención', 'Datos guardados')");
+        }
+        catch(Exception ex)
+        {
+            ctx.execute("setMessage('MESS_ERRO', 'Atención', 'Error al guardar ')");
+        }
+        finally
+        {
+            
+        }
+    }
+    
+    public void modi()
+    {
+        RequestContext ctx = RequestContext.getCurrentInstance(); //Capturo el contexto de la página
+        try
+        {
+            this.listGrup.remove(this.objeGrup); //Limpia el objeto viejo
+            FCDEGrupos.edit(this.objeGrup);
+            this.listGrup.add(this.objeGrup); //Agrega el objeto modificado
+            this.limpForm();
+            ctx.execute("setMessage('MESS_SUCC', 'Atención', 'Datos Modificados')");
+        }
+        catch(Exception ex)
+        {
+            ctx.execute("setMessage('MESS_ERRO', 'Atención', 'Error al modificar ')");
+        }
+    }
+    
+    public void elim()
+    {
+        RequestContext ctx = RequestContext.getCurrentInstance(); //Capturo el contexto de la página
+        try
+        {
+            FCDEGrupos.remove(this.objeGrup);
+            this.listGrup.remove(this.objeGrup);
+            this.limpForm();
+            ctx.execute("setMessage('MESS_SUCC', 'Atención', 'Datos Eliminados')");
+        }
+        catch(Exception ex)
+        {
+            ctx.execute("setMessage('MESS_ERRO', 'Atención', 'Error al eliminar')");
+        }
+    }
+    
+    public void consTodo()
+    {
+        try
+        {
+            this.listGrup = FCDEGrupos.findAll();
+        }
+        catch(Exception ex)
+        {
+            ex.printStackTrace();
+        }
+    }
+    
+    public void cons()
+    {
+        RequestContext ctx = RequestContext.getCurrentInstance(); //Capturo el contexto de la página
+        int codi = Integer.parseInt(FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap().get("codiPara"));
+        try
+        {
+            this.objeGrup = FCDEGrupos.find(codi);
+            this.guardar = false;
+            ctx.execute("setMessage('MESS_SUCC', 'Atención', 'Consultado a " + 
+                    String.format("%s", this.objeGrup.getNombGrup()) + "')");
+        }
+        catch(Exception ex)
+        {
+            ex.printStackTrace();
+            ctx.execute("setMessage('MESS_ERRO', 'Atención', 'Error al consultar')");
+        }
     }
     
     
